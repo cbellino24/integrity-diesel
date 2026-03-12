@@ -201,3 +201,171 @@ if (quoteForm) {
 }
 
 parseFormStatusFromUrl();
+
+/* =========================
+   SHOP WORK PAGE
+========================= */
+
+const shopWorkPage = document.querySelector("[data-shop-work-page]");
+const shopFilters = document.querySelectorAll(".shop-work-filter");
+const shopCards = document.querySelectorAll(".shop-work-card");
+const shopTrack = document.querySelector(".shop-work-track");
+const shopTrackWrap = document.querySelector(".shop-work-track-wrap");
+const shopPrev = document.querySelector(".shop-work-arrow.prev");
+const shopNext = document.querySelector(".shop-work-arrow.next");
+
+const shopLightbox = document.getElementById("shopLightbox");
+const shopLightboxImage = document.getElementById("shopLightboxImage");
+const shopLightboxLabel = document.getElementById("shopLightboxLabel");
+const shopLightboxTitle = document.getElementById("shopLightboxTitle");
+const shopLightboxDescription = document.getElementById("shopLightboxDescription");
+const shopLightboxMeta1 = document.getElementById("shopLightboxMeta1");
+const shopLightboxMeta2 = document.getElementById("shopLightboxMeta2");
+const shopLightboxClose = document.getElementById("shopLightboxClose");
+
+if (shopWorkPage) {
+  let isDragging = false;
+  let hasDragged = false;
+  let startX = 0;
+  let scrollLeft = 0;
+
+  function applyShopFilter(filterValue) {
+    shopCards.forEach((card) => {
+      const category = card.dataset.category || "";
+      const show = filterValue === "all" || category.includes(filterValue);
+      card.classList.toggle("is-hidden", !show);
+    });
+  }
+
+  shopFilters.forEach((button) => {
+    button.addEventListener("click", () => {
+      shopFilters.forEach((btn) => btn.classList.remove("is-active"));
+      button.classList.add("is-active");
+      applyShopFilter(button.dataset.filter || "all");
+    });
+  });
+
+  if (shopPrev && shopTrack) {
+    shopPrev.addEventListener("click", () => {
+      shopTrack.scrollBy({ left: -420, behavior: "smooth" });
+    });
+  }
+
+  if (shopNext && shopTrack) {
+    shopNext.addEventListener("click", () => {
+      shopTrack.scrollBy({ left: 420, behavior: "smooth" });
+    });
+  }
+
+  if (shopTrack && shopTrackWrap) {
+    const startDrag = (clientX) => {
+      isDragging = true;
+      hasDragged = false;
+      startX = clientX;
+      scrollLeft = shopTrack.scrollLeft;
+      shopTrackWrap.classList.add("is-dragging");
+    };
+
+    const dragMove = (clientX) => {
+      if (!isDragging) return;
+      const walk = clientX - startX;
+      if (Math.abs(walk) > 6) hasDragged = true;
+      shopTrack.scrollLeft = scrollLeft - walk;
+    };
+
+    const endDrag = () => {
+      isDragging = false;
+      shopTrackWrap.classList.remove("is-dragging");
+      setTimeout(() => {
+        hasDragged = false;
+      }, 0);
+    };
+
+    shopTrackWrap.addEventListener("mousedown", (e) => startDrag(e.pageX));
+    window.addEventListener("mousemove", (e) => dragMove(e.pageX));
+    window.addEventListener("mouseup", endDrag);
+
+    shopTrackWrap.addEventListener("touchstart", (e) => {
+      if (!e.touches[0]) return;
+      startDrag(e.touches[0].clientX);
+    }, { passive: true });
+
+    shopTrackWrap.addEventListener("touchmove", (e) => {
+      if (!e.touches[0]) return;
+      dragMove(e.touches[0].clientX);
+    }, { passive: true });
+
+    shopTrackWrap.addEventListener("touchend", endDrag);
+  }
+
+  function openShopLightbox(card) {
+    if (!shopLightbox) return;
+
+    const img = card.querySelector("img");
+    const title = card.dataset.title || card.querySelector("h3")?.textContent || "Shop Work";
+    const description = card.dataset.description || card.querySelector("p")?.textContent || "";
+    const label = card.dataset.label || "Work";
+    const meta1 = card.dataset.meta1 || "Integrity Diesel Truck & Auto Repair";
+    const meta2 = card.dataset.meta2 || "Where country kindness and prices meet big city expertise.";
+
+    if (shopLightboxImage && img) {
+      shopLightboxImage.src = img.src;
+      shopLightboxImage.alt = img.alt || title;
+    }
+
+    if (shopLightboxLabel) shopLightboxLabel.textContent = label;
+    if (shopLightboxTitle) shopLightboxTitle.textContent = title;
+    if (shopLightboxDescription) shopLightboxDescription.textContent = description;
+    if (shopLightboxMeta1) shopLightboxMeta1.textContent = meta1;
+    if (shopLightboxMeta2) shopLightboxMeta2.textContent = meta2;
+
+    shopLightbox.classList.add("is-open");
+    shopLightbox.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeShopLightbox() {
+    if (!shopLightbox) return;
+    shopLightbox.classList.remove("is-open");
+    shopLightbox.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  shopCards.forEach((card) => {
+    const button = card.querySelector(".shop-work-card-button");
+
+    if (button) {
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (hasDragged) return;
+        openShopLightbox(card);
+      });
+    }
+
+    card.addEventListener("click", () => {
+      if (hasDragged) return;
+      openShopLightbox(card);
+    });
+  });
+
+  if (shopLightboxClose) {
+    shopLightboxClose.addEventListener("click", closeShopLightbox);
+  }
+
+  if (shopLightbox) {
+    shopLightbox.addEventListener("click", (e) => {
+      if (e.target === shopLightbox) {
+        closeShopLightbox();
+      }
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && shopLightbox?.classList.contains("is-open")) {
+      closeShopLightbox();
+    }
+  });
+
+  applyShopFilter("all");
+}
