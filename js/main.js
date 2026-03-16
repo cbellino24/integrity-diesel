@@ -203,6 +203,76 @@ if (quoteForm) {
 parseFormStatusFromUrl();
 
 /* =========================
+   SERVICE CARD LIGHTBOX
+========================= */
+
+const serviceCardTriggers = document.querySelectorAll(".service-lightbox-trigger");
+const serviceLightbox = document.getElementById("serviceLightbox");
+const serviceLightboxImage = document.getElementById("serviceLightboxImage");
+const serviceLightboxTitle = document.getElementById("serviceLightboxTitle");
+const serviceLightboxClose = document.getElementById("serviceLightboxClose");
+
+function openServiceLightbox(card) {
+  if (!serviceLightbox) return;
+
+  const img = card.querySelector("img");
+  const title = card.querySelector(".service-title")?.textContent.trim() || "Service Image";
+
+  if (img && serviceLightboxImage) {
+    serviceLightboxImage.src = img.src;
+    serviceLightboxImage.alt = img.alt || title;
+  }
+
+  if (serviceLightboxTitle) {
+    serviceLightboxTitle.textContent = title;
+  }
+
+  serviceLightbox.classList.add("is-open");
+  serviceLightbox.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeServiceLightbox() {
+  if (!serviceLightbox) return;
+
+  serviceLightbox.classList.remove("is-open");
+  serviceLightbox.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+
+  if (serviceLightboxImage) {
+    serviceLightboxImage.src = "";
+    serviceLightboxImage.alt = "";
+  }
+}
+
+serviceCardTriggers.forEach((card) => {
+  card.addEventListener("click", () => {
+    openServiceLightbox(card);
+  });
+});
+
+if (serviceLightboxClose) {
+  serviceLightboxClose.addEventListener("click", closeServiceLightbox);
+}
+
+if (serviceLightbox) {
+  serviceLightbox.addEventListener("click", (e) => {
+    if (
+      e.target.classList.contains("service-lightbox") ||
+      e.target.classList.contains("service-lightbox-backdrop")
+    ) {
+      closeServiceLightbox();
+    }
+  });
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && serviceLightbox?.classList.contains("is-open")) {
+    closeServiceLightbox();
+  }
+});
+
+/* =========================
    SHOP WORK PAGE
 ========================= */
 
